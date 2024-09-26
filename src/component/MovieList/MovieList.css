@@ -1,0 +1,12 @@
+.movie-list__position {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 36px;
+  width: 1010px;
+  margin: 0 auto;
+}
+
+.movie-list__spin {
+  margin: 100px;
+}

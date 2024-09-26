@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  font-family: 'Inter', 'system-ui';
+}
+
+h1,
+h2,
+ul,
+span,
+p {
+  margin: 0px;
+}
+
+.movieapp__position {
+  margin: 0 auto;
+}

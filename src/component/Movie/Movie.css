@@ -1,0 +1,105 @@
+.movie-list__card-wrapper {
+  width: 450px;
+  height: 280px;
+  box-shadow: 0px 4px 12px 0px #00000026;
+}
+
+.movie__flex {
+  display: flex;
+}
+
+.movie-poster {
+  height: 280px;
+  width: 180px;
+}
+
+.movie-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: 7px;
+}
+
+.movie-info:nth-child(1n) {
+  margin: 10px 20px 10px 20px;
+}
+
+.movie-info__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.date {
+  font-size: 12px;
+  color: #827e7e;
+}
+
+.description {
+  font-size: 12px;
+}
+
+.genres {
+  padding: 0px;
+  list-style-type: none;
+  display: flex;
+  gap: 8px;
+  width: 230px;
+  flex-wrap: wrap;
+}
+
+.genre {
+  color: #000000a6;
+  padding: 1px 3px 1px 3px;
+  font-family: Inter;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14.52px;
+  text-align: left;
+  border: 1px solid #d9d9d9;
+  background-color: #fafafa;
+  white-space: nowrap;
+}
+
+.rate {
+  margin-top: auto;
+}
+
+.ant-rate .ant-rate-star:not(:last-child) {
+  margin-inline-end: 2px;
+}
+
+.rated {
+  box-sizing: border-box;
+  min-width: 35px;
+  height: 35px;
+  text-align: center;
+  padding: 15px 0;
+  line-height: 0;
+  margin-left: 5px;
+
+  border: 3px solid;
+  border-radius: 50%;
+}
+
+.rate__03 {
+  border-color: #e90000;
+}
+
+.rate__35 {
+  border-color: #e97e00;
+}
+
+.rate__57 {
+  border-color: #e9d100;
+}
+
+.rate__710 {
+  border-color: #66e900;
+}
