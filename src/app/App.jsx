@@ -2,7 +2,7 @@ import { Component, Fragment } from 'react'
 import { Offline, Online } from 'react-detect-offline'
 import { Alert } from 'antd'
 
-import { GCProvider } from '../component/GenresContext/GenresContext'
+import { GCProvider } from '../GenresContext/GenresContext'
 import MovieapiService from '../services/movieapi-services'
 import MovieList from '../component/MovieList/MovieList'
 import Search from '../component/Search/Search'
@@ -29,29 +29,34 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    if (!sessionStorage.getItem('guestId')) {
+    //console.log(localStorage)
+    if (!localStorage.getItem('guestId')) {
       this.createGuest()
     } else {
       this.setState({
-        guestId: sessionStorage.getItem('guestId'),
+        guestId: localStorage.getItem('guestId'),
       })
     }
     this.getGenreList()
     this.getPopularMovies()
+  }
 
-    if (sessionStorage.getItem('rateMovieData')) {
-      this.setState({
-        rateMovieData: JSON.parse(sessionStorage.getItem('rateMovieData')),
+  componentDidUpdate(prevP) {
+    if (prevP.rateMovieData !== this.props.rateMovieData) {
+      this.setState(({ rateMovieData }) => {
+        return { rateMovieData: rateMovieData }
       })
     }
   }
 
+  movieapi = new MovieapiService()
+
   createGuest = () => {
-    const movieapi = new MovieapiService()
-    movieapi
+    //console.log('Создание сессии')
+    this.movieapi
       .guestSession()
       .then((res) => {
-        sessionStorage.setItem('guestId', res)
+        localStorage.setItem('guestId', res)
 
         this.setState({ guestId: res, isLoading: false })
       })
@@ -79,8 +84,7 @@ export default class App extends Component {
   }
 
   getGenreList = () => {
-    const movieapi = new MovieapiService()
-    movieapi
+    this.movieapi
       .getGenreList()
       .then((res) => {
         this.setState({ genreList: res.genres })
@@ -93,7 +97,6 @@ export default class App extends Component {
   searchMovie = () => {
     //console.log('Это поисковик!')
     const { searchQuery, page } = this.state
-    const movieapi = new MovieapiService()
     this.setState({
       movieData: [],
       isLoading: true,
@@ -106,7 +109,7 @@ export default class App extends Component {
       this.getPopularMovies()
       this.setState({ isSearchMovies: false })
     } else {
-      movieapi
+      this.movieapi
         .getMoviesInfo(searchQuery, page)
         .then((res) => {
           this.setState({
@@ -136,7 +139,6 @@ export default class App extends Component {
   getPopularMovies = () => {
     const { page } = this.state
     //console.log('Это популярити! Страница ' + page)
-    const movieapi = new MovieapiService()
     this.setState({
       movieData: [],
       isLoading: true,
@@ -144,7 +146,8 @@ export default class App extends Component {
       isError: false,
       isSearchMovies: false,
     })
-    movieapi
+
+    this.movieapi
       .getPopularMovies(page)
       .then((res) => {
         this.setState({
@@ -179,21 +182,47 @@ export default class App extends Component {
     })
   }
 
-  addRateMovie = (id, value) => {
-    //console.log('Я получил ', id, ' Со значением ', value)
-    const newRateMovie = { id, value }
-
-    this.setState(({ rateMovieData }) => {
-      return {
-        rateMovieData: [...rateMovieData, newRateMovie],
+  addRatingMovie = (id, value) => {
+    //console.log('Рейтинг добавлен!')
+    this.getDataRatingMovie()
+    let newArr = []
+    this.state.rateMovieData.map((el) => {
+      if (el !== id) {
+        return (newArr = { id: id, value: value })
       }
     })
+    this.setState(({ rateMovieData }) => {
+      return { rateMovieData: [...rateMovieData, newArr] }
+    })
+  }
+
+  getDataRatingMovie = () => {
+    const { guestId, page } = this.state
+
+    this.movieapi
+      .getRatedMovies(guestId, page)
+      .then((res) => {
+        const result = res.results.map((el) => {
+          return { id: el.id, value: el.rating }
+        })
+        const arr = []
+        arr.push(...result)
+        this.setState({ rateMovieData: [...arr] })
+      })
+      .catch(() => {
+        this.setState({
+          isLoading: false,
+          movieNotFound: false,
+          isError: true,
+        })
+        //console.log('Вот тут косяк')
+      })
+    //console.log('Я вызван, результат ', this.state.rateMovieData)
   }
 
   getRatedMovies = () => {
     const { guestId, page } = this.state
     //console.log('Это рейтингованные! Страница ' + page)
-    const movieapi = new MovieapiService()
     this.setState({
       movieData: [],
       isLoading: true,
@@ -201,15 +230,16 @@ export default class App extends Component {
       isError: false,
       isSearchMovies: false,
     })
-    movieapi
+    this.movieapi
       .getRatedMovies(guestId, page)
       .then((res) => {
         this.setState({
           totalPage: res.total_pages,
           page,
         })
+
         if (res.results.length === 0) {
-          console.log('Пусто!!!')
+          //console.log('Пусто!!!')
           this.setState({
             isLoading: false,
             movieNotFound: true,
@@ -229,15 +259,44 @@ export default class App extends Component {
 
   postMovieRating = (movieId, value) => {
     const { guestId } = this.state
-    const movieapi = new MovieapiService()
-    movieapi.postMovieRating(guestId, movieId, value)
+    this.movieapi.postMovieRating(guestId, movieId, value)
   }
 
   moviesShow = (movieData) => {
-    this.setState({ movieData, isLoading: false, isError: false })
+    const { guestId, page } = this.state
+
+    this.movieapi.getRatedMovies(guestId, page).then((res) => {
+      const result = res.results.map((el) => {
+        return { id: el.id, value: el.rating }
+      })
+      const arr = []
+      arr.push(...result)
+      this.setState({ rateMovieData: [...arr] })
+      this.setState({ movieData, isLoading: false, isError: false })
+    })
   }
 
   render() {
+    const mainContent = (
+      <section className="movieapp__position">
+        <GCProvider value={this.state.genreList}>
+          <MovieList
+            tabKey={this.state.tabKey}
+            movies={this.state.movieData}
+            //getGenresOfMovie={this.getGenresOfMovie}
+            loadingStatus={this.state.isLoading}
+            errorStatus={this.state.isError}
+            notFoundStatus={this.state.movieNotFound}
+            addRatingMovie={this.addRatingMovie}
+            rateMovieData={this.state.rateMovieData}
+            guestId={this.state.guestId}
+            postMovieRating={this.postMovieRating}
+            getRatedMovies={this.getRatedMovies}
+            searchMovie={this.searchMovie}
+          />
+        </GCProvider>
+      </section>
+    )
     return (
       <Fragment>
         <Online>
@@ -246,24 +305,7 @@ export default class App extends Component {
               <Header onChangeTab={this.onChangeTab} />
               <Search tabKey={this.state.tabKey} searchQueryChange={this.searchQueryChange} />
             </header>
-            <section className="movieapp__position">
-              <GCProvider value={this.state.genreList}>
-                <MovieList
-                  tabKey={this.state.tabKey}
-                  movies={this.state.movieData}
-                  //getGenresOfMovie={this.getGenresOfMovie}
-                  loadingStatus={this.state.isLoading}
-                  errorStatus={this.state.isError}
-                  notFoundStatus={this.state.movieNotFound}
-                  addRateMovie={this.addRateMovie}
-                  rateMovieData={this.state.rateMovieData}
-                  guestId={this.state.guestId}
-                  postMovieRating={this.postMovieRating}
-                  getRatedMovies={this.getRatedMovies}
-                  searchMovie={this.searchMovie}
-                />
-              </GCProvider>
-            </section>
+            {mainContent}
             <footer>
               <Footer
                 notFoundStatus={this.state.movieNotFound}
@@ -283,6 +325,7 @@ export default class App extends Component {
             type="error"
             showIcon
           />
+          {mainContent}
         </Offline>
       </Fragment>
     )

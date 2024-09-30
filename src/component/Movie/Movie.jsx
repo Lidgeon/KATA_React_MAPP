@@ -6,12 +6,21 @@ import PropTypes from 'prop-types'
 
 export default class Movie extends Component {
   onChangeRate = (value) => {
-    this.props.addRateMovie(this.props.el.id, value)
     this.props.postMovieRating(this.props.el.id, value)
+    this.props.addRatingMovie(this.props.el.id, value)
+  }
+
+  overviewShrink = (overview, maxSymbol) => {
+    if (overview.length <= maxSymbol) {
+      return overview
+    }
+    const subStr = overview.substring(0, maxSymbol - 1)
+    return `${subStr.substring(0, subStr.lastIndexOf(' '))}...`
   }
 
   render() {
     const { rating, el, genres } = this.props
+    //console.log(el)
     const genresOfMovie = genres.filter((item) => el.genre_ids.includes(item.id))
     const { title, release_date, overview, poster_path, vote_average } = el
     const curPosterPath = poster_path || '/vbLxDKfo8fYC8ISKKrJczNbGKLP.jpg'
@@ -32,15 +41,7 @@ export default class Movie extends Component {
       rateClass = 'rate__710'
     }
 
-    const shortOverview = overviewShrink(curOverview, 150)
-
-    function overviewShrink(overview, maxSymbol) {
-      if (overview.length <= maxSymbol) {
-        return overview
-      }
-      const subStr = overview.substring(0, maxSymbol - 1)
-      return `${subStr.substring(0, subStr.lastIndexOf(' '))}...`
-    }
+    const shortOverview = this.overviewShrink(curOverview, 150)
 
     return (
       <div className="movie">
@@ -86,5 +87,5 @@ Movie.propTypes = {
     title: PropTypes.string,
     overview: PropTypes.string,
   }),
-  addRateMovie: PropTypes.func.isRequired,
+  addRatingMovie: PropTypes.func.isRequired,
 }
