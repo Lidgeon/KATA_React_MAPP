@@ -29,7 +29,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    //console.log(localStorage)
+    //console.log(localStorage, this.state.guestId)
     if (!localStorage.getItem('guestId')) {
       this.createGuest()
     } else {
@@ -41,13 +41,13 @@ export default class App extends Component {
     this.getPopularMovies()
   }
 
-  componentDidUpdate(prevP) {
-    if (prevP.rateMovieData !== this.props.rateMovieData) {
-      this.setState(({ rateMovieData }) => {
-        return { rateMovieData: rateMovieData }
-      })
-    }
-  }
+  // componentDidUpdate(prevP) {
+  //   if (prevP.rateMovieData !== this.props.rateMovieData) {
+  //     this.setState(({ rateMovieData }) => {
+  //       return { rateMovieData: rateMovieData }
+  //     })
+  //   }
+  // }
 
   movieapi = new MovieapiService()
 
@@ -184,7 +184,7 @@ export default class App extends Component {
 
   addRatingMovie = (id, value) => {
     //console.log('Рейтинг добавлен!')
-    this.getDataRatingMovie()
+
     let newArr = []
     this.state.rateMovieData.map((el) => {
       if (el !== id) {
@@ -194,6 +194,8 @@ export default class App extends Component {
     this.setState(({ rateMovieData }) => {
       return { rateMovieData: [...rateMovieData, newArr] }
     })
+    //this.getDataRatingMovie()
+    //console.log('Я вызван, результат ', this.state.rateMovieData)
   }
 
   getDataRatingMovie = () => {
@@ -215,9 +217,8 @@ export default class App extends Component {
           movieNotFound: false,
           isError: true,
         })
-        //console.log('Вот тут косяк')
+        //console.log('Ошибочка')
       })
-    //console.log('Я вызван, результат ', this.state.rateMovieData)
   }
 
   getRatedMovies = () => {
@@ -246,6 +247,7 @@ export default class App extends Component {
             isError: true,
           })
         }
+        this.getDataRatingMovie()
         this.moviesShow(res.results)
       })
       .catch(() => {
@@ -264,16 +266,29 @@ export default class App extends Component {
 
   moviesShow = (movieData) => {
     const { guestId, page } = this.state
-
-    this.movieapi.getRatedMovies(guestId, page).then((res) => {
-      const result = res.results.map((el) => {
-        return { id: el.id, value: el.rating }
+    //console.log(this.state.rateMovieData)
+    this.movieapi
+      .getRatedMovies(guestId, page)
+      .then((res) => {
+        const result = res.results.map((el) => {
+          return { id: el.id, value: el.rating }
+        })
+        const arr = []
+        arr.push(...result)
+        this.setState({ rateMovieData: [...arr] })
+        this.setState({ movieData, isLoading: false, isError: false })
       })
-      const arr = []
-      arr.push(...result)
-      this.setState({ rateMovieData: [...arr] })
-      this.setState({ movieData, isLoading: false, isError: false })
-    })
+      .catch(() => {
+        this.setState({
+          isLoading: false,
+          movieNotFound: false,
+          isError: true,
+        })
+        this.setState({ movieData, isLoading: false, isError: false })
+        console.log(
+          'Я не знаю как НЕ делать запрос на получение звездочек, я не нашла через что проверить, но это точно такая же ошибка, как при запросе во второй таб-вкладке и там она разрешается. А-а-а'
+        )
+      })
   }
 
   render() {
