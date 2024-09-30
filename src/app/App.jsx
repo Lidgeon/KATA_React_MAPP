@@ -285,10 +285,8 @@ export default class App extends Component {
           isError: true,
         })
         this.setState({ movieData, isLoading: false, isError: false })
-        // console.log(
-        //   'Я не знаю как НЕ делать запрос на получение звездочек, я не нашла через что проверить, но это точно такая же ошибка, как при запросе во второй таб-вкладке и там она разрешается. А-а-а'
-        // )
       })
+    console.log(':с')
   }
 
   render() {
